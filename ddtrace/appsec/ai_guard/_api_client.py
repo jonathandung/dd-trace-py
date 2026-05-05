@@ -117,7 +117,7 @@ class AIGuardAbortError(Exception):
 class AIGuardClient:
     """HTTP client for communicating with AI Guard security service."""
 
-    def __init__(self, endpoint: str, api_key: str, app_key: str, headers: Optional[dict[str, str]] = None):
+    def __init__(self, endpoint: str, api_key: str, app_key: str, meta: Optional[dict[str, str]] = None):
         """Initialize AI Guard client.
 
         Args:
@@ -134,10 +134,10 @@ class AIGuardClient:
             "DD-AI-GUARD-SOURCE": "SDK",
             "DD-AI-GUARD-LANGUAGE": "python",
         }
-        if headers:
-            for key, value in headers.items():
-                self._headers[key] = value
         self._meta = {"service": config.service, "env": config.env}
+        if meta:
+            for key, value in meta.items():
+                self._meta[key] = value
         self._timeout = ai_guard_config._ai_guard_timeout // 1000
 
     @staticmethod
@@ -355,7 +355,7 @@ class AIGuardClient:
 
 def new_ai_guard_client(
     endpoint: Optional[str] = None,
-    headers: Optional[dict[str, str]] = None,
+    meta: Optional[dict[str, str]] = None,
 ) -> AIGuardClient:
     api_key = config._dd_api_key
     app_key = config._dd_app_key
@@ -368,4 +368,4 @@ def new_ai_guard_client(
         site = f"app.{config._dd_site}" if config._dd_site.count(".") == 1 else config._dd_site
         endpoint = f"https://{site}/api/v2/ai-guard"
 
-    return AIGuardClient(endpoint, api_key, app_key, headers)
+    return AIGuardClient(endpoint, api_key, app_key, meta)
