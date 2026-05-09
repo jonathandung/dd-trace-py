@@ -397,7 +397,7 @@
         "dependency": "confluent-kafka",
         "integration": "kafka",
         "minimum_tracer_supported": "1.9.2",
-        "max_tracer_supported": "2.6.2",
+        "max_tracer_supported": "2.14.0",
         "auto-instrumented": true
     },
     {
@@ -631,7 +631,7 @@
         "dependency": "pyramid",
         "integration": "pyramid",
         "minimum_tracer_supported": "1.10.8",
-        "max_tracer_supported": "2.0.2",
+        "max_tracer_supported": "2.1",
         "auto-instrumented": true
     },
     {
