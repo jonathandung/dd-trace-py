@@ -1,0 +1,36 @@
+---
+upgrade:
+  - |
+    The following legacy environment variables are now handled as aliases of
+    their canonical counterparts in the central configuration registry. Both
+    forms continue to work; the canonical takes precedence when both are set:
+
+    * ``DD_PSYCOPG2_TRACE_FETCH_METHODS`` → ``DD_PSYCOPG_TRACE_FETCH_METHODS``
+    * ``DD_PSYCOPG2_TRACE_CONNECT`` → ``DD_PSYCOPG_TRACE_CONNECT``
+    * ``DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED`` →
+      ``DD_TRACE_INFERRED_SPANS_ENABLED`` (the deprecation warning continues
+      to fire when the legacy name is set)
+    * Every per-integration ``DD_<INTEGRATION>_SERVICE_NAME`` →
+      ``DD_<INTEGRATION>_SERVICE``
+    * Newly added: ``DD_CELERY_PRODUCER_SERVICE_NAME`` →
+      ``DD_CELERY_PRODUCER_SERVICE``, ``DD_CELERY_WORKER_SERVICE_NAME`` →
+      ``DD_CELERY_WORKER_SERVICE``, ``DD_DJANGO_CACHE_SERVICE_NAME`` →
+      ``DD_DJANGO_CACHE_SERVICE``
+  - |
+    ``DD_TRACE_AGENT_HOSTNAME`` and ``DD_TRACE_AGENT_PORT`` are now handled
+    as aliases of ``DD_AGENT_HOST`` and ``DD_AGENT_PORT``. When both legacy
+    and canonical variables are set, the canonical now takes precedence
+    (previously the legacy form won by accident in ``_derive_trace_url``).
+    Setting either variable in isolation continues to work as before.
+fixes:
+  - |
+    The ``DD_KOMBU_SERVICE``, ``DD_JINJA2_SERVICE``, and
+    ``DD_DJANGO_DATABASE_SERVICE`` environment variables are now honored
+    by their respective integrations. Previously these were registered as
+    supported configurations but the integrations' span pins read only the
+    legacy ``_SERVICE_NAME`` form, silently ignoring the canonical names.
+other:
+  - |
+    Removed the long-stale ``DD_SERVICE_NAME`` entry from the supported
+    configurations registry. ``DD_SERVICE_NAME`` was deprecated and removed
+    in favor of ``DD_SERVICE`` long ago; no code reads it.

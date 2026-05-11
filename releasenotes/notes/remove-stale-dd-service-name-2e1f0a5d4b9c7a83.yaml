@@ -1,6 +1,0 @@
----
-other:
-  - |
-    Removed the long-stale ``DD_SERVICE_NAME`` entry from the supported
-    configurations registry. ``DD_SERVICE_NAME`` was officially deprecated
-    and removed in v0.36 in favor of ``DD_SERVICE``; no code reads it.
