@@ -33,7 +33,7 @@ RAY_SERVE_SNAPSHOT_VARIANTS = {
 }
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def ray_runtime():
     ray.init(
         ignore_reinit_error=True,
