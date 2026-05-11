@@ -3179,13 +3179,6 @@
         "default": null
       }
     ],
-    "DD_PSYCOPG2_TRACE_FETCH_METHODS": [
-      {
-        "implementation": "A",
-        "type": "string",
-        "default": null
-      }
-    ],
     "DD_PSYCOPG_SERVICE": [
       {
         "implementation": "A",
@@ -3211,7 +3204,10 @@
       {
         "implementation": "A",
         "type": "string",
-        "default": null
+        "default": null,
+        "aliases": [
+          "DD_PSYCOPG2_TRACE_FETCH_METHODS"
+        ]
       }
     ],
     "DD_PYDANTIC_AI_SERVICE": [
