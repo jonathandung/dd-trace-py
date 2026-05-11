@@ -1589,6 +1589,18 @@
         ]
       }
     ],
+    "DD_FOO_SERVICE": [
+      {
+        "implementation": "A",
+        "type": "string",
+        "default": null,
+        "internal": true,
+        "experimental": true,
+        "aliases": [
+          "DD_FOO_SERVICE_NAME"
+        ]
+      }
+    ],
     "DD_FUTURES_SERVICE": [
       {
         "implementation": "A",

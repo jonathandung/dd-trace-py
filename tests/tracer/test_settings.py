@@ -156,12 +156,10 @@ class TestIntegrationConfig(BaseTestCase):
         ic = IntegrationConfig(self.config, "foo")
         assert ic.service == "foo-svc"
 
-    @BaseTestCase.run_in_subprocess(env_overrides=dict(DD_FLASK_SERVICE_NAME="flask-svc"))
+    @BaseTestCase.run_in_subprocess(env_overrides=dict(DD_FOO_SERVICE_NAME="foo-svc"))
     def test_service_name_env_var(self):
-        # Uses a registered integration name so the legacy ``_SERVICE_NAME`` alias
-        # resolves to ``_SERVICE`` via the central CONFIGURATION_ALIASES registry.
-        ic = IntegrationConfig(self.config, "flask")
-        assert ic.service == "flask-svc"
+        ic = IntegrationConfig(self.config, "foo")
+        assert ic.service == "foo-svc"
 
     def test_app_analytics_property(self):
         # test default values
