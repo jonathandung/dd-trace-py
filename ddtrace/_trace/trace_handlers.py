@@ -1827,7 +1827,7 @@ def _on_proxy_request_end(
                 route=request_route,
                 status_code=status_code,
             )
-        else:
+        elif request_type == "grpc":
             grpc_status = str(status_code)
             span._set_attribute("grpc.status.code", grpc_status)
             if getattr(response_status, "is_error", False):
