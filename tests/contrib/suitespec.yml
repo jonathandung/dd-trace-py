@@ -1110,6 +1110,7 @@ suites:
       - '@tracing'
       - '@ray'
       - tests/contrib/ray_serve/*
+      - tests/contrib/ray_serve/multi_app/*
       - tests/snapshots/tests.contrib.ray_serve.*
     pattern: ^ray_serve$
     snapshot: true
