@@ -4573,18 +4573,14 @@
         "default": "500-599"
       }
     ],
-    "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": [
-      {
-        "implementation": "A",
-        "type": "boolean",
-        "default": "false"
-      }
-    ],
     "DD_TRACE_INFERRED_SPANS_ENABLED": [
       {
         "implementation": "A",
         "type": "boolean",
-        "default": "false"
+        "default": "false",
+        "aliases": [
+          "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED"
+        ]
       }
     ],
     "DD_TRACE_JINJA2_ENABLED": [

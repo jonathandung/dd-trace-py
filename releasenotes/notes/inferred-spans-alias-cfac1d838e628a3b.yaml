@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    The legacy ``DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED`` environment
+    variable is now handled as an alias of ``DD_TRACE_INFERRED_SPANS_ENABLED``
+    in the central configuration registry. The deprecation warning continues
+    to fire when the legacy name is set. Removal is still planned for v5.0.
