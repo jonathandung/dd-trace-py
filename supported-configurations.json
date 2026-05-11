@@ -3172,13 +3172,6 @@
         "default": null
       }
     ],
-    "DD_PSYCOPG2_TRACE_CONNECT": [
-      {
-        "implementation": "A",
-        "type": "string",
-        "default": null
-      }
-    ],
     "DD_PSYCOPG_SERVICE": [
       {
         "implementation": "A",
@@ -3197,7 +3190,10 @@
       {
         "implementation": "A",
         "type": "string",
-        "default": null
+        "default": null,
+        "aliases": [
+          "DD_PSYCOPG2_TRACE_CONNECT"
+        ]
       }
     ],
     "DD_PSYCOPG_TRACE_FETCH_METHODS": [

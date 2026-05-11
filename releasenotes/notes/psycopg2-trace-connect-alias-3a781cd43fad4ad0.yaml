@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    The legacy ``DD_PSYCOPG2_TRACE_CONNECT`` environment variable is now
+    handled as an alias of ``DD_PSYCOPG_TRACE_CONNECT`` in the central
+    configuration registry. No behavior change for users; internal cleanup.
