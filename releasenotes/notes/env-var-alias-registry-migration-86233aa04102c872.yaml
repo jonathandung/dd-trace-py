@@ -6,7 +6,3 @@ fixes:
     ``DD_DJANGO_CACHE_SERVICE`` now override the service tag on their
     respective spans. Previously they were ignored in favor of the
     ``DD_<INTEGRATION>_SERVICE_NAME`` form.
-  - |
-    ``DD_AGENT_HOST`` and ``DD_AGENT_PORT`` now correctly take precedence
-    over the legacy ``DD_TRACE_AGENT_HOSTNAME`` and ``DD_TRACE_AGENT_PORT``
-    when both are set.
