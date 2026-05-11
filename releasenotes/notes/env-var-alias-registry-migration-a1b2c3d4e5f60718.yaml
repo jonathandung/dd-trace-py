@@ -1,17 +1,12 @@
 ---
-features:
-  - |
-    Added ``DD_CELERY_PRODUCER_SERVICE``, ``DD_CELERY_WORKER_SERVICE``, and
-    ``DD_DJANGO_CACHE_SERVICE`` environment variables for overriding the
-    service tag on celery producer, celery worker, and django cache spans.
 fixes:
   - |
-    ``DD_KOMBU_SERVICE``, ``DD_JINJA2_SERVICE``, and
-    ``DD_DJANGO_DATABASE_SERVICE`` are now honored. Previously they were
-    silently ignored in favor of the ``DD_<INTEGRATION>_SERVICE_NAME`` form.
-upgrade:
+    ``DD_KOMBU_SERVICE``, ``DD_JINJA2_SERVICE``, ``DD_DJANGO_DATABASE_SERVICE``,
+    ``DD_CELERY_PRODUCER_SERVICE``, ``DD_CELERY_WORKER_SERVICE``, and
+    ``DD_DJANGO_CACHE_SERVICE`` now override the service tag on their
+    respective spans. Previously they were ignored in favor of the
+    ``DD_<INTEGRATION>_SERVICE_NAME`` form.
   - |
-    When both ``DD_AGENT_HOST`` and ``DD_TRACE_AGENT_HOSTNAME`` are set,
-    ``DD_AGENT_HOST`` now takes precedence (previously ``DD_TRACE_AGENT_HOSTNAME``
-    won). Same for ``DD_AGENT_PORT`` / ``DD_TRACE_AGENT_PORT``. Setting only
-    one of either pair continues to work unchanged.
+    ``DD_AGENT_HOST`` and ``DD_AGENT_PORT`` now correctly take precedence
+    over the legacy ``DD_TRACE_AGENT_HOSTNAME`` and ``DD_TRACE_AGENT_PORT``
+    when both are set.
