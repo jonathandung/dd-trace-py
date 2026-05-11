@@ -61,7 +61,7 @@ config._add(
         _default_service=schematize_service_name("django"),
         cache_service_name=env.get("DD_DJANGO_CACHE_SERVICE_NAME", default="django"),
         database_service_name_prefix=env.get("DD_DJANGO_DATABASE_SERVICE_NAME_PREFIX", default=""),
-        database_service_name=env.get("DD_DJANGO_DATABASE_SERVICE_NAME", default=""),
+        database_service_name=env.get("DD_DJANGO_DATABASE_SERVICE", default=""),
         trace_fetch_methods=asbool(env.get("DD_DJANGO_TRACE_FETCH_METHODS", default=False)),
         distributed_tracing_enabled=True,
         instrument_middleware=asbool(env.get("DD_DJANGO_INSTRUMENT_MIDDLEWARE", default=True)),

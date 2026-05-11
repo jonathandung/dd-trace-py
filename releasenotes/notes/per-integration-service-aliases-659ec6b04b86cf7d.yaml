@@ -1,0 +1,19 @@
+---
+upgrade:
+  - |
+    For every Datadog tracer integration that supports a service-name override
+    (e.g., ``DD_FLASK_SERVICE``, ``DD_REDIS_SERVICE``, ``DD_KOMBU_SERVICE``,
+    ...), the legacy ``DD_<INTEGRATION>_SERVICE_NAME`` form is now handled as
+    an alias of ``DD_<INTEGRATION>_SERVICE`` in the central configuration
+    registry. Both forms continue to work; the canonical takes precedence
+    when both are set.
+fixes:
+  - |
+    The ``DD_KOMBU_SERVICE`` environment variable is now honored correctly
+    by the kombu integration's Consumer and Producer pins. Previously only
+    the legacy ``DD_KOMBU_SERVICE_NAME`` form had any effect on those pins.
+  - |
+    The ``DD_JINJA2_SERVICE`` and ``DD_DJANGO_DATABASE_SERVICE`` environment
+    variables are now honored by the jinja2 and django-database integrations.
+    Previously only the legacy ``_SERVICE_NAME`` forms had any effect on
+    those integrations.
