@@ -50,3 +50,12 @@ def unpatch() -> None:
     from ddtrace.contrib.internal.pytorch import _distributed
 
     _distributed.uninstall()
+    # Tear down the Layer 3 profiler. Always called: `shutdown_profiler` is a
+    # no-op when no profiler is running, so we don't gate on the current value
+    # of DD_PYTORCH_KERNEL_PROFILING (which may have changed since patch()).
+    try:
+        from ddtrace.contrib.internal.pytorch._profiler import shutdown_profiler
+
+        shutdown_profiler()
+    except Exception:
+        log.debug("pytorch: Layer 3 shutdown raised; suppressing", exc_info=True)

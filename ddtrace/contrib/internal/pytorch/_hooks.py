@@ -138,7 +138,23 @@ def _maybe_close_step(instance: Any) -> None:
     global _step_counter
     with _designation_lock:
         _step_counter += 1
+        current_step = _step_counter
+    # Capture span identity before _close_step nulls _STEP_TLS.span.
+    finished_span = getattr(_STEP_TLS, "span", None)
     _close_step(skipped=False)
+    # Notify the Layer 3 profiler (no-op when DD_PYTORCH_KERNEL_PROFILING is unset).
+    if finished_span is not None:
+        try:
+            from ddtrace.contrib.internal.pytorch import _profiler
+            from ddtrace.contrib.internal.pytorch._distributed import _state
+
+            _profiler.on_designated_step_finished(
+                span=finished_span,
+                step=current_step,
+                rank=int(_state.get("rank", 0) or 0),
+            )
+        except Exception:
+            log.debug("pytorch: Layer 3 hook failed", exc_info=True)
 
 
 def _mark_optimizer_step_end_now() -> None:
