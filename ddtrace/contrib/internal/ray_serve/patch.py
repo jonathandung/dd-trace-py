@@ -212,6 +212,13 @@ def _trace_deployment_method(method, deployment_name, is_ingress_call: bool = Fa
     method_name = method.__name__
     resource_name = "invoke" if method_name in ("__call__", deployment_name) else method_name
 
+    def _set_ingress_endpoint_resource(ctx, args, kwargs):
+        # Fast path: only ingress-wrapper __call__ can map invoke -> endpoint method.
+        if is_ingress_call and resource_name == "invoke":
+            scope = get_argument_value(args, kwargs, 1, "scope")
+            if endpoint_name := _get_ingress_endpoint_method_name(scope):
+                core.dispatch("ray.serve.deployment.resource.set", (ctx, deployment_name, endpoint_name))
+
     if inspect.iscoroutinefunction(method):
 
         @wraps(method)
@@ -223,14 +230,39 @@ def _trace_deployment_method(method, deployment_name, is_ingress_call: bool = Fa
             ) as ctx:
                 _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
                 result = await method(*args, **kwargs)
-                # Fast path: only ingress-wrapper __call__ can map invoke -> endpoint method.
-                if is_ingress_call and resource_name == "invoke":
-                    scope = get_argument_value(args, kwargs, 1, "scope")
-                    if endpoint_name := _get_ingress_endpoint_method_name(scope):
-                        core.dispatch("ray.serve.deployment.resource.set", (ctx, deployment_name, endpoint_name))
+                _set_ingress_endpoint_resource(ctx, args, kwargs)
                 return result
 
         wrapped_method = _traced_async
+    elif inspect.isasyncgenfunction(method):
+
+        @wraps(method)
+        async def _traced_async_generator(*args, **kwargs):
+            with core.context_with_data(
+                "ray.serve.deployment",
+                span_name="deployment.method_execution",
+                resource=f"ServeDeployment:{deployment_name}.{resource_name}",
+            ) as ctx:
+                _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
+                _set_ingress_endpoint_resource(ctx, args, kwargs)
+                async for item in method(*args, **kwargs):
+                    yield item
+
+        wrapped_method = _traced_async_generator
+    elif inspect.isgeneratorfunction(method):
+
+        @wraps(method)
+        def _traced_generator(*args, **kwargs):
+            with core.context_with_data(
+                "ray.serve.deployment",
+                span_name="deployment.method_execution",
+                resource=f"ServeDeployment:{deployment_name}.{resource_name}",
+            ) as ctx:
+                _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
+                _set_ingress_endpoint_resource(ctx, args, kwargs)
+                yield from method(*args, **kwargs)
+
+        wrapped_method = _traced_generator
     else:
 
         @wraps(method)
@@ -338,7 +370,11 @@ def traced_serve_deployment(func, instance, args, kwargs):
 
     @wraps(decorator)
     def _traced_decorator(func_or_class):
-        return decorator(_instrument_serve_deployment(func_or_class, deployment_name))
+        target_deployment_name = deployment_name
+        if target_deployment_name is None:
+            target_deployment_name = func_or_class.__name__
+
+        return decorator(_instrument_serve_deployment(func_or_class, target_deployment_name))
 
     return _traced_decorator
 

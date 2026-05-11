@@ -38,6 +38,13 @@ def ray_runtime():
     ray.init(
         ignore_reinit_error=True,
         _tracing_startup_hook="ddtrace.contrib.ray:setup_tracing",
+        # Keep Ray small for CI, but leave enough resources for the
+        # multi-deployment Serve app to schedule all replicas.
+        num_cpus=4,
+        num_gpus=0,
+        object_store_memory=78643200,
+        include_dashboard=False,
+        log_to_driver=False,
     )
     yield
     ray.shutdown()
@@ -57,23 +64,33 @@ class TestRawServeApp:
         def FunctionDeployment() -> str:
             return "Function"
 
+        @serve.deployment()
+        def DecoratorFactoryFunctionDeployment() -> str:
+            return "DecoratorFactoryFunction"
+
         class Ingress:
             def __init__(
                 self,
                 class_handle: DeploymentHandle,
                 func_handle: DeploymentHandle,
+                decorator_factory_func_handle: DeploymentHandle,
             ):
                 self._class_handle = class_handle
                 self._func_handle = func_handle
+                self._decorator_factory_func_handle = decorator_factory_func_handle
 
             async def __call__(self, request: Request) -> str:
                 class_response = self._class_handle.remote(request.url.path)
                 func_response = self._func_handle.remote()
-                return (await class_response) + (await func_response)
+                class_result = await class_response
+                func_result = await func_response
+                decorator_factory_func_response = self._decorator_factory_func_handle.remote()
+                return class_result + func_result + (await decorator_factory_func_response)
 
         app = serve.deployment(Ingress).bind(  # type: ignore[attr-defined]
             ClassDeployment.bind(),  # type: ignore[attr-defined]
             FunctionDeployment.bind(),  # type: ignore[attr-defined]
+            DecoratorFactoryFunctionDeployment.bind(),  # type: ignore[attr-defined]
         )
         serve.run(app)
 
@@ -87,7 +104,7 @@ class TestRawServeApp:
     def test_ray_deployment_interaction(self, raw_serve_app):
         resp = requests.get(f"{raw_serve_app}/", timeout=2)
         assert resp.status_code == 200
-        assert resp.text == "ClassFunction"
+        assert resp.text == "ClassFunctionDecoratorFactoryFunction"
         time.sleep(5)
 
     @pytest.mark.snapshot(ignores=RAY_SNAPSHOT_IGNORES)

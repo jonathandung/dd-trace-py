@@ -2,7 +2,7 @@
   {
     "name": "requests.request",
     "service": "requests",
-    "resource": "GET /goodbye",
+    "resource": "GET /hello",
     "trace_id": 0,
     "span_id": 1,
     "parent_id": 0,
@@ -11,18 +11,18 @@
     "meta": {
       "_dd.base_service": "tests.contrib.ray_serve",
       "_dd.p.dm": "-0",
-      "_dd.p.tid": "6a01efcc00000000",
+      "_dd.p.tid": "6a02023900000000",
       "_dd.svc_src": "requests",
       "_dd.tags.process": "entrypoint.name:pytest,entrypoint.type:script,entrypoint.workdir:project,svc.auto:tests.contrib.ray_serve",
       "component": "requests",
       "http.method": "GET",
       "http.status_code": "200",
       "http.status_msg": "OK",
-      "http.url": "http://127.0.0.1:8000/goodbye",
+      "http.url": "http://127.0.0.1:8000/hello",
       "http.useragent": "python-requests/2.33.1",
       "language": "python",
       "out.host": "127.0.0.1",
-      "runtime-id": "a2689b941a644869a95db5da79e52be1",
+      "runtime-id": "7c38ba69e6f1406e90fb2209730b713a",
       "span.kind": "client"
     },
     "metrics": {
@@ -32,13 +32,13 @@
       "_sampling_priority_v1": 1.0,
       "process_id": 605.0
     },
-    "duration": 5279417,
-    "start": 1778511820070520667
+    "duration": 8722916,
+    "start": 1778516537346068879
   },
      {
        "name": "proxy_request",
        "service": "ray._private.workers",
-       "resource": "GET /goodbye",
+       "resource": "GET /hello",
        "trace_id": 0,
        "span_id": 2,
        "parent_id": 1,
@@ -46,7 +46,7 @@
        "error": 0,
        "meta": {
          "_dd.p.dm": "-0",
-         "_dd.p.tid": "6a01efcc00000000",
+         "_dd.p.tid": "6a02023900000000",
          "_dd.tags.process": "entrypoint.basedir:workers,entrypoint.name:default_worker,entrypoint.type:script,entrypoint.workdir:multi_app,svc.auto:ray._private.workers",
          "env": "test",
          "http.method": "GET",
@@ -54,35 +54,35 @@
          "http.status_code": "200",
          "language": "python",
          "ray.serve.request.type": "http",
-         "runtime-id": "a7040a6ff2364c17b8b596afe1c8d233",
-         "tracestate": "dd=p:4e57fa2607135613;s:1;t.dm:-0;t.tid:6a01efcc00000000"
+         "runtime-id": "ff2feb9c14fe4a8dba00a3a75c4a8a27",
+         "tracestate": "dd=p:d41f302be2dd6929;s:1;t.dm:-0;t.tid:6a02023900000000"
        },
        "metrics": {
          "_dd.top_level": 1.0,
          "_dd.tracer_kr": 1.0,
          "_sampling_priority_v1": 1.0,
-         "process_id": 2462.0
+         "process_id": 2177.0
        },
-       "duration": 4620833,
-       "start": 1778511820071344876
+       "duration": 7692750,
+       "start": 1778516537347847879
      },
         {
           "name": "deployment.remote",
           "service": "ray._private.workers",
-          "resource": "ServeDeployment:GoodbyeApp.remote",
+          "resource": "ServeDeployment:HelloApp.remote",
           "trace_id": 0,
           "span_id": 3,
           "parent_id": 2,
           "type": "",
           "error": 0,
           "meta": {
-            "_dd.p.tid": "6a01efcc00000000",
+            "_dd.p.tid": "6a02023900000000",
             "component": "ray",
             "env": "test",
-            "ray.serve.app_name": "goodbye_app"
+            "ray.serve.app_name": "hello_app"
           },
-          "duration": 130667,
-          "start": 1778511820071522084
+          "duration": 283334,
+          "start": 1778516537348200045
         },
            {
              "name": "Router.assign_request",
@@ -94,19 +94,19 @@
              "type": "http",
              "error": 0,
              "meta": {
-               "_dd.p.tid": "6a01efcc00000000",
+               "_dd.p.tid": "6a02023900000000",
                "component": "ray",
                "env": "test",
-               "ray.serve.request_id": "bc82e076-33a9-44bd-87d6-9982ca166413",
-               "runtime-id": "a7040a6ff2364c17b8b596afe1c8d233"
+               "ray.serve.request_id": "1baf284a-10c1-4728-8bf2-b42b85ed0951",
+               "runtime-id": "ff2feb9c14fe4a8dba00a3a75c4a8a27"
              },
              "metrics": {
                "_dd.top_level": 1.0,
-               "process_id": 2462.0,
+               "process_id": 2177.0,
                "ray.serve.is_streaming": 1.0
              },
-             "duration": 2441083,
-             "start": 1778511820071820876
+             "duration": 3853166,
+             "start": 1778516537348751879
            },
               {
                 "name": "handle_request_with_rejection",
@@ -119,53 +119,53 @@
                 "error": 0,
                 "meta": {
                   "_dd.p.dm": "-0",
-                  "_dd.p.tid": "6a01efcc00000000",
+                  "_dd.p.tid": "6a02023900000000",
                   "_dd.tags.process": "entrypoint.basedir:workers,entrypoint.name:default_worker,entrypoint.type:script,entrypoint.workdir:multi_app,svc.auto:ray._private.workers",
                   "component": "ray",
                   "env": "test",
                   "language": "python",
-                  "ray.serve.replica_id": "SERVE_REPLICA::goodbye_app#GoodbyeApp#dyxy9sd6",
-                  "ray.serve.request_id": "bc82e076-33a9-44bd-87d6-9982ca166413",
-                  "runtime-id": "d72ef394adfe4480a5a11275dd53b42c",
-                  "tracestate": "dd=p:170738cb27c11226;s:1;t.dm:-0;t.tid:6a01efcc00000000"
+                  "ray.serve.replica_id": "SERVE_REPLICA::hello_app#HelloApp#3k2uwn3i",
+                  "ray.serve.request_id": "1baf284a-10c1-4728-8bf2-b42b85ed0951",
+                  "runtime-id": "d8308f1b388340da94d080da5fcf59f1",
+                  "tracestate": "dd=p:84395598578d7c27;s:1;t.dm:-0;t.tid:6a02023900000000"
                 },
                 "metrics": {
                   "_dd.top_level": 1.0,
                   "_dd.tracer_kr": 1.0,
                   "_sampling_priority_v1": 1.0,
-                  "process_id": 2464.0
+                  "process_id": 2171.0
                 },
-                "duration": 1640917,
-                "start": 1778511820073178459
+                "duration": 2716916,
+                "start": 1778516537350854379
               },
                  {
                    "name": "deployment.method_execution",
                    "service": "ray._private.workers",
-                   "resource": "ServeDeployment:GoodbyeApp.invoke",
+                   "resource": "ServeDeployment:HelloApp.invoke",
                    "trace_id": 0,
                    "span_id": 6,
                    "parent_id": 5,
                    "type": "",
                    "error": 0,
                    "meta": {
-                     "_dd.p.tid": "6a01efcc00000000",
+                     "_dd.p.tid": "6a02023900000000",
                      "component": "ray",
                      "env": "test",
-                     "ray.serve.app_name": "goodbye_app",
+                     "ray.serve.app_name": "hello_app",
                      "ray.serve.call_method": "invoke",
-                     "ray.serve.deployment": "GoodbyeApp",
-                     "ray.serve.replica_id": "SERVE_REPLICA::goodbye_app#GoodbyeApp#dyxy9sd6",
-                     "ray.serve.request_id": "bc82e076-33a9-44bd-87d6-9982ca166413",
-                     "ray.serve.route": "/goodbye"
+                     "ray.serve.deployment": "HelloApp",
+                     "ray.serve.replica_id": "SERVE_REPLICA::hello_app#HelloApp#3k2uwn3i",
+                     "ray.serve.request_id": "1baf284a-10c1-4728-8bf2-b42b85ed0951",
+                     "ray.serve.route": "/hello"
                    },
-                   "duration": 48667,
-                   "start": 1778511820074207084
+                   "duration": 76167,
+                   "start": 1778516537352494962
                  }],
 [
   {
     "name": "requests.request",
     "service": "requests",
-    "resource": "GET /hello",
+    "resource": "GET /goodbye",
     "trace_id": 1,
     "span_id": 1,
     "parent_id": 0,
@@ -174,18 +174,18 @@
     "meta": {
       "_dd.base_service": "tests.contrib.ray_serve",
       "_dd.p.dm": "-0",
-      "_dd.p.tid": "6a01efcc00000000",
+      "_dd.p.tid": "6a02023900000000",
       "_dd.svc_src": "requests",
       "_dd.tags.process": "entrypoint.name:pytest,entrypoint.type:script,entrypoint.workdir:project,svc.auto:tests.contrib.ray_serve",
       "component": "requests",
       "http.method": "GET",
       "http.status_code": "200",
       "http.status_msg": "OK",
-      "http.url": "http://127.0.0.1:8000/hello",
+      "http.url": "http://127.0.0.1:8000/goodbye",
       "http.useragent": "python-requests/2.33.1",
       "language": "python",
       "out.host": "127.0.0.1",
-      "runtime-id": "a2689b941a644869a95db5da79e52be1",
+      "runtime-id": "7c38ba69e6f1406e90fb2209730b713a",
       "span.kind": "client"
     },
     "metrics": {
@@ -195,13 +195,13 @@
       "_sampling_priority_v1": 1.0,
       "process_id": 605.0
     },
-    "duration": 6029000,
-    "start": 1778511820063816501
+    "duration": 8707292,
+    "start": 1778516537355693712
   },
      {
        "name": "proxy_request",
        "service": "ray._private.workers",
-       "resource": "GET /hello",
+       "resource": "GET /goodbye",
        "trace_id": 1,
        "span_id": 2,
        "parent_id": 1,
@@ -209,7 +209,7 @@
        "error": 0,
        "meta": {
          "_dd.p.dm": "-0",
-         "_dd.p.tid": "6a01efcc00000000",
+         "_dd.p.tid": "6a02023900000000",
          "_dd.tags.process": "entrypoint.basedir:workers,entrypoint.name:default_worker,entrypoint.type:script,entrypoint.workdir:multi_app,svc.auto:ray._private.workers",
          "env": "test",
          "http.method": "GET",
@@ -217,35 +217,35 @@
          "http.status_code": "200",
          "language": "python",
          "ray.serve.request.type": "http",
-         "runtime-id": "a7040a6ff2364c17b8b596afe1c8d233",
-         "tracestate": "dd=p:ed23ef95d77c0eae;s:1;t.dm:-0;t.tid:6a01efcc00000000"
+         "runtime-id": "ff2feb9c14fe4a8dba00a3a75c4a8a27",
+         "tracestate": "dd=p:cd1fc4771dba4c3a;s:1;t.dm:-0;t.tid:6a02023900000000"
        },
        "metrics": {
          "_dd.top_level": 1.0,
          "_dd.tracer_kr": 1.0,
          "_sampling_priority_v1": 1.0,
-         "process_id": 2462.0
+         "process_id": 2177.0
        },
-       "duration": 5218083,
-       "start": 1778511820065030001
+       "duration": 7792750,
+       "start": 1778516537357107129
      },
         {
           "name": "deployment.remote",
           "service": "ray._private.workers",
-          "resource": "ServeDeployment:HelloApp.remote",
+          "resource": "ServeDeployment:GoodbyeApp.remote",
           "trace_id": 1,
           "span_id": 3,
           "parent_id": 2,
           "type": "",
           "error": 0,
           "meta": {
-            "_dd.p.tid": "6a01efcc00000000",
+            "_dd.p.tid": "6a02023900000000",
             "component": "ray",
             "env": "test",
-            "ray.serve.app_name": "hello_app"
+            "ray.serve.app_name": "goodbye_app"
           },
-          "duration": 266167,
-          "start": 1778511820065264167
+          "duration": 217541,
+          "start": 1778516537357388254
         },
            {
              "name": "Router.assign_request",
@@ -257,19 +257,19 @@
              "type": "http",
              "error": 0,
              "meta": {
-               "_dd.p.tid": "6a01efcc00000000",
+               "_dd.p.tid": "6a02023900000000",
                "component": "ray",
                "env": "test",
-               "ray.serve.request_id": "286606b0-8cce-4d88-90b2-68747db56e1a",
-               "runtime-id": "a7040a6ff2364c17b8b596afe1c8d233"
+               "ray.serve.request_id": "9cd1a706-3e54-43e5-aeda-33383c666e04",
+               "runtime-id": "ff2feb9c14fe4a8dba00a3a75c4a8a27"
              },
              "metrics": {
                "_dd.top_level": 1.0,
-               "process_id": 2462.0,
+               "process_id": 2177.0,
                "ray.serve.is_streaming": 1.0
              },
-             "duration": 2752667,
-             "start": 1778511820065765584
+             "duration": 4253750,
+             "start": 1778516537357868337
            },
               {
                 "name": "handle_request_with_rejection",
@@ -282,45 +282,45 @@
                 "error": 0,
                 "meta": {
                   "_dd.p.dm": "-0",
-                  "_dd.p.tid": "6a01efcc00000000",
+                  "_dd.p.tid": "6a02023900000000",
                   "_dd.tags.process": "entrypoint.basedir:workers,entrypoint.name:default_worker,entrypoint.type:script,entrypoint.workdir:multi_app,svc.auto:ray._private.workers",
                   "component": "ray",
                   "env": "test",
                   "language": "python",
-                  "ray.serve.replica_id": "SERVE_REPLICA::hello_app#HelloApp#v8mcug87",
-                  "ray.serve.request_id": "286606b0-8cce-4d88-90b2-68747db56e1a",
-                  "runtime-id": "6b5e69e873eb4e75a9465e78d84bb823",
-                  "tracestate": "dd=p:55e1eaa4f52a2db8;s:1;t.dm:-0;t.tid:6a01efcc00000000"
+                  "ray.serve.replica_id": "SERVE_REPLICA::goodbye_app#GoodbyeApp#4dffmvpv",
+                  "ray.serve.request_id": "9cd1a706-3e54-43e5-aeda-33383c666e04",
+                  "runtime-id": "4ed4e315597e42ce99d2f22d564713b9",
+                  "tracestate": "dd=p:17c97faf63f24089;s:1;t.dm:-0;t.tid:6a02023900000000"
                 },
                 "metrics": {
                   "_dd.top_level": 1.0,
                   "_dd.tracer_kr": 1.0,
                   "_sampling_priority_v1": 1.0,
-                  "process_id": 2463.0
+                  "process_id": 2176.0
                 },
-                "duration": 1731292,
-                "start": 1778511820067325709
+                "duration": 3007792,
+                "start": 1778516537360081212
               },
                  {
                    "name": "deployment.method_execution",
                    "service": "ray._private.workers",
-                   "resource": "ServeDeployment:HelloApp.invoke",
+                   "resource": "ServeDeployment:GoodbyeApp.invoke",
                    "trace_id": 1,
                    "span_id": 6,
                    "parent_id": 5,
                    "type": "",
                    "error": 0,
                    "meta": {
-                     "_dd.p.tid": "6a01efcc00000000",
+                     "_dd.p.tid": "6a02023900000000",
                      "component": "ray",
                      "env": "test",
-                     "ray.serve.app_name": "hello_app",
+                     "ray.serve.app_name": "goodbye_app",
                      "ray.serve.call_method": "invoke",
-                     "ray.serve.deployment": "HelloApp",
-                     "ray.serve.replica_id": "SERVE_REPLICA::hello_app#HelloApp#v8mcug87",
-                     "ray.serve.request_id": "286606b0-8cce-4d88-90b2-68747db56e1a",
-                     "ray.serve.route": "/hello"
+                     "ray.serve.deployment": "GoodbyeApp",
+                     "ray.serve.replica_id": "SERVE_REPLICA::goodbye_app#GoodbyeApp#4dffmvpv",
+                     "ray.serve.request_id": "9cd1a706-3e54-43e5-aeda-33383c666e04",
+                     "ray.serve.route": "/goodbye"
                    },
-                   "duration": 52459,
-                   "start": 1778511820068483542
+                   "duration": 58250,
+                   "start": 1778516537362174712
                  }]]
