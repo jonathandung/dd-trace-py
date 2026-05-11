@@ -53,6 +53,49 @@ def test_layer1_collectives_gloo(test_spans):
         pt_unpatch()
 
 
+def test_layer_two_full_step_hierarchy_under_ddp_gloo(test_spans, monkeypatch):
+    """Real DDP-gloo training step with `DD_PYTORCH_PROFILING=true`; assert
+    `pytorch.step` contains `pytorch.data_load` / `pytorch.forward` /
+    `pytorch.backward` / `pytorch.optimizer` children plus the Layer 1
+    `pytorch.allreduce` from gradient sync.
+    """
+    monkeypatch.setenv("DD_PYTORCH_PROFILING", "true")
+    import importlib
+
+    from ddtrace.contrib.internal.pytorch import _hooks
+
+    importlib.reload(_hooks)
+    from ddtrace.contrib.internal.pytorch.patch import patch as pt_patch
+    from ddtrace.contrib.internal.pytorch.patch import unpatch as pt_unpatch
+
+    pt_patch()
+    _setup_single_rank_gloo()
+    try:
+        model = torch.nn.parallel.DistributedDataParallel(torch.nn.Linear(4, 4))
+        opt = torch.optim.AdamW(model.parameters(), lr=1e-3)
+        loss_fn = torch.nn.MSELoss()
+
+        for _ in range(2):
+            x = torch.randn(2, 4)
+            y = torch.randn(2, 4)
+            opt.zero_grad()
+            out = model(x)
+            loss = loss_fn(out, y)
+            loss.backward()
+            opt.step()
+
+        spans = test_spans.pop()
+        names = [s.name for s in spans]
+        assert names.count("pytorch.step") == 2
+        assert names.count("pytorch.forward") >= 2
+        assert names.count("pytorch.backward") >= 2
+        assert names.count("pytorch.optimizer") == 2
+        assert names.count("pytorch.data_load") >= 1
+    finally:
+        _teardown_gloo()
+        pt_unpatch()
+
+
 def test_layer1_optimizer_step_passthrough(test_spans):
     """Layer 1 optimizer wrap is a pure pass-through (Plan B adds a
     `pytorch.optimizer` span). Verify no extra span is emitted but the user's

@@ -11,6 +11,7 @@ import wrapt
 
 from ddtrace import config
 from ddtrace import tracer
+from ddtrace.contrib.internal.pytorch._utils import _amp_skip_state
 from ddtrace.contrib.internal.pytorch._utils import _enter_framework
 from ddtrace.contrib.internal.pytorch._utils import _get_active_framework
 from ddtrace.contrib.internal.pytorch._utils import (
@@ -419,6 +420,11 @@ def _wrapped_ddp_init(wrapped, instance, args, kwargs):
         # Non-actionable for the user (the model still works); log at warning
         # without a traceback to avoid polluting training output.
         log.warning("pytorch: failed to register DDP framework", exc_info=True)
+    # Hook the inner user model (DDP exposes it as `.module`) so forward /
+    # backward timings reflect user-layer compute rather than DDP wrapper
+    # overhead.
+    inner = getattr(instance, "module", instance)
+    _attach_layer2_to_inner_module(inner)
     return result
 
 
@@ -455,6 +461,14 @@ def _wrapped_fsdp_init(wrapped, instance, args, kwargs):
         register_framework(instance, "fsdp")
     except Exception:
         log.warning("pytorch: failed to register FSDP framework", exc_info=True)
+    # FSDP overrides `__getattr__` to delegate to `_fsdp_wrapped_module`; under
+    # a mocked / partially-initialized instance that attribute may be missing
+    # and the lookup itself raises, so wrap defensively.
+    try:
+        inner = getattr(instance, "module", instance)
+    except Exception:
+        inner = instance
+    _attach_layer2_to_inner_module(inner)
     return result
 
 
@@ -493,7 +507,23 @@ def _wrapped_deepspeed_init(wrapped, instance, args, kwargs):
         register_framework(instance, "deepspeed")
     except Exception:
         log.warning("pytorch: failed to register deepspeed framework", exc_info=True)
+    # DeepSpeed exposes the user model on `.module`; fall back to the engine
+    # itself if it isn't there.
+    inner = getattr(instance, "module", instance)
+    _attach_layer2_to_inner_module(inner)
     return result
+
+
+def _attach_layer2_to_inner_module(model) -> None:
+    """Lazy import + call into _hooks.attach_layer_two_hooks to avoid a circular
+    import at module load.
+    """
+    try:
+        from ddtrace.contrib.internal.pytorch import _hooks
+
+        _hooks.attach_layer_two_hooks(model)
+    except Exception:
+        log.debug("pytorch: layer2 attachment failed", exc_info=True)
 
 
 def _wrapped_deepspeed_method(name: str):
@@ -538,7 +568,10 @@ _step_originals: "weakref.WeakKeyDictionary[Any, Any]" = weakref.WeakKeyDictiona
 
 
 def _instance_step_wrapper(wrapped, instance, args, kwargs):
-    return wrapped(*args, **kwargs)
+    # Lazy import to avoid circular import between _hooks and _distributed.
+    from ddtrace.contrib.internal.pytorch import _hooks
+
+    return _hooks.optimizer_step(wrapped, instance, args, kwargs)
 
 
 def _wrapped_optimizer_init(wrapped, instance, args, kwargs):
@@ -580,21 +613,34 @@ def _uninstall_optimizer() -> None:
     _step_originals.clear()
 
 
-_amp_skip_state = threading.local()
 _wrapped_gradscaler_targets: list = []
 
 
-def _is_amp_step_in_progress() -> bool:
-    return getattr(_amp_skip_state, "in_amp", False)
-
-
 def _wrapped_gradscaler_step(wrapped, instance, args, kwargs):
-    prev = getattr(_amp_skip_state, "in_amp", False)
+    """Toggle AMP state and notify Layer 2 of the step outcome.
+
+    The inner optimizer.step (which we also wrap) sets
+    ``_amp_skip_state.step_executed = True`` when it runs; if GradScaler
+    detects an overflow and skips, the flag stays False.
+    """
+    prev_in_amp = getattr(_amp_skip_state, "in_amp", False)
+    prev_step_executed = getattr(_amp_skip_state, "step_executed", False)
     _amp_skip_state.in_amp = True
+    _amp_skip_state.step_executed = False
+    optimizer = args[0] if args else kwargs.get("optimizer")
     try:
         return wrapped(*args, **kwargs)
     finally:
-        _amp_skip_state.in_amp = prev
+        skipped = not _amp_skip_state.step_executed
+        _amp_skip_state.in_amp = prev_in_amp
+        _amp_skip_state.step_executed = prev_step_executed
+        # Lazy import to avoid circular import between _hooks and _distributed.
+        try:
+            from ddtrace.contrib.internal.pytorch import _hooks
+
+            _hooks.gradscaler_emit_step_outcome(optimizer, skipped=skipped)
+        except Exception:
+            log.debug("pytorch: gradscaler outcome hook failed", exc_info=True)
 
 
 def _install_gradscaler() -> None:
@@ -797,6 +843,13 @@ def uninstall() -> None:
     _uninstall_optimizer()
     _uninstall_gradscaler()
     _uninstall_ddp_comm_hook()
+    # Remove Layer 2 model hooks (no-op if Layer 2 was never enabled).
+    try:
+        from ddtrace.contrib.internal.pytorch import _hooks
+
+        _hooks.detach_layer_two_hooks()
+    except Exception:
+        log.debug("pytorch: layer2 hook detachment failed", exc_info=True)
     resolver: Optional[CudaEventResolver] = _state.get("resolver")
     if resolver is not None:
         resolver.stop(timeout=2.0)

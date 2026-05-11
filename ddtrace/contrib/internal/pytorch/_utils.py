@@ -17,6 +17,20 @@ log = get_logger(__name__)
 
 _bypass_state = threading.local()
 
+# Thread-local timestamp of the most recent optimizer.step end, set by the
+# Layer 2 hooks and read on the next forward to emit `pytorch.data_load`.
+_LAST_OPTIMIZER_STEP_END_NS = threading.local()
+
+# Thread-local AMP state set by the GradScaler wrapper:
+#   in_amp:        True while inside ``scaler.step(optimizer)``
+#   step_executed: True if the inner optimizer.step actually ran (i.e. no AMP overflow)
+_amp_skip_state = threading.local()
+
+
+def is_amp_step_in_progress() -> bool:
+    return getattr(_amp_skip_state, "in_amp", False)
+
+
 _CLOCK_DRIFT_THRESHOLD_NS = 1_000_000  # 1 ms
 _CLOCK_OFFSET_SAMPLES = 5
 
@@ -42,6 +56,18 @@ class ClockOffset(NamedTuple):
 
 def is_instrumentation_bypassed() -> bool:
     return getattr(_bypass_state, "depth", 0) > 0
+
+
+def get_last_optimizer_step_end_ns() -> int:
+    return getattr(_LAST_OPTIMIZER_STEP_END_NS, "value", 0)
+
+
+def set_last_optimizer_step_end_ns(value_ns: int) -> None:
+    _LAST_OPTIMIZER_STEP_END_NS.value = value_ns
+
+
+def now_ns() -> int:
+    return time.time_ns()
 
 
 @contextlib.contextmanager

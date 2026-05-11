@@ -210,7 +210,7 @@ def test_gradscaler_cuda_amp_is_wrapped(monkeypatch):
     try:
         # `.step` is wrapped via class-attribute replacement; verify the
         # wrapper sees the in_amp toggle by calling through.
-        from ddtrace.contrib.internal.pytorch._distributed import _is_amp_step_in_progress
+        from ddtrace.contrib.internal.pytorch._utils import is_amp_step_in_progress as _is_amp_step_in_progress
 
         called_with_amp_on = []
 
