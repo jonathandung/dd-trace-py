@@ -686,11 +686,14 @@
         "default": null
       }
     ],
-    "DD_CELERY_PRODUCER_SERVICE_NAME": [
+    "DD_CELERY_PRODUCER_SERVICE": [
       {
         "implementation": "A",
         "type": "string",
-        "default": null
+        "default": null,
+        "aliases": [
+          "DD_CELERY_PRODUCER_SERVICE_NAME"
+        ]
       }
     ],
     "DD_CELERY_SERVICE": [
@@ -703,11 +706,14 @@
         ]
       }
     ],
-    "DD_CELERY_WORKER_SERVICE_NAME": [
+    "DD_CELERY_WORKER_SERVICE": [
       {
         "implementation": "A",
         "type": "string",
-        "default": null
+        "default": null,
+        "aliases": [
+          "DD_CELERY_WORKER_SERVICE_NAME"
+        ]
       }
     ],
     "DD_CHERRYPY_DISTRIBUTED_TRACING": [
@@ -1166,11 +1172,14 @@
         "default": null
       }
     ],
-    "DD_DJANGO_CACHE_SERVICE_NAME": [
+    "DD_DJANGO_CACHE_SERVICE": [
       {
         "implementation": "A",
         "type": "string",
-        "default": null
+        "default": null,
+        "aliases": [
+          "DD_DJANGO_CACHE_SERVICE_NAME"
+        ]
       }
     ],
     "DD_DJANGO_DATABASE_SERVICE": [
@@ -3219,13 +3228,6 @@
         "implementation": "C",
         "type": "map",
         "default": ""
-      }
-    ],
-    "DD_SERVICE_NAME": [
-      {
-        "implementation": "A",
-        "type": "string",
-        "default": null
       }
     ],
     "DD_SETUP_CACHE_DIR": [
