@@ -1100,6 +1100,7 @@ suites:
       - '@ray'
       - tests/contrib/ray/*
       - tests/snapshots/tests.contrib.ray.*
+    pattern: ^ray$
     snapshot: true
   ray_serve:
     parallelism: 3
