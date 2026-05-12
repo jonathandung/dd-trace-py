@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Mapping
+from typing import Optional
 
 from ray.serve._private.proxy_request_response import ProxyRequest
 from ray.serve._private.proxy_router import ProxyRouter
@@ -14,14 +15,14 @@ if TYPE_CHECKING:
     from ray.serve.grpc_util import RayServegRPCContext
 
 
-def extract_grpc_context(headers: "RayServegRPCContext | None") -> Context:
+def extract_grpc_context(headers: Optional["RayServegRPCContext"]) -> Context:
     # `headers` is None when calling the deployment handle remote, which is used in
     # the integration tests to reconfigure() (used in the throttling tests)
     metadata = dict(headers.invocation_metadata()) if headers is not None else {}
     return HTTPPropagator.extract(metadata)
 
 
-def inject_grpc_context(span_context: Context, headers: "RayServegRPCContext | None") -> None:
+def inject_grpc_context(span_context: Context, headers: Optional["RayServegRPCContext"]) -> None:
     # `headers` is None when calling the deployment handle remote, which is used in
     # the integration tests to reconfigure() (used in the throttling tests)
     if headers is None:
@@ -31,7 +32,7 @@ def inject_grpc_context(span_context: Context, headers: "RayServegRPCContext | N
     headers._invocation_metadata = list(invocation_metadata.items())
 
 
-def _extract_proxy_request_http_context(proxy_request: ProxyRequest) -> Context | None:
+def _extract_proxy_request_http_context(proxy_request: ProxyRequest) -> Optional[Context]:
     try:
         headers = extract_headers(getattr(proxy_request, "scope", {}))
     except Exception:
@@ -41,7 +42,7 @@ def _extract_proxy_request_http_context(proxy_request: ProxyRequest) -> Context 
     return extracted_context
 
 
-def _get_proxy_request_route_pattern(instance, proxy_request: ProxyRequest) -> str | None:
+def _get_proxy_request_route_pattern(instance, proxy_request: ProxyRequest) -> Optional[str]:
     proxy_router: ProxyRouter = instance.proxy_router
     scope = getattr(proxy_request, "scope", None)
     if not isinstance(scope, dict):
@@ -64,7 +65,7 @@ def _get_proxy_request_route_pattern(instance, proxy_request: ProxyRequest) -> s
     return route_prefix
 
 
-def _get_ingress_endpoint_method_name(scope: Mapping[str, object] | None) -> str | None:
+def _get_ingress_endpoint_method_name(scope: Optional[Mapping[str, object]]) -> Optional[str]:
     if scope is None:
         return None
 

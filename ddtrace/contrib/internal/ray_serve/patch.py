@@ -84,7 +84,7 @@ def _set_deployment_method_span_metadata(ctx, deployment_name: str, method_name:
 
 class ServeRequestContextPropagator:
     @staticmethod
-    def extract_from_request_metadata(request_meta: RequestMetadata) -> Context | None:
+    def extract_from_request_metadata(request_meta: RequestMetadata) -> Optional[Context]:
         if request_meta.is_grpc_request:
             return extract_grpc_context(request_meta.grpc_context)
 
