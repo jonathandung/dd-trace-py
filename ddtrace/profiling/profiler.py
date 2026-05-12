@@ -76,6 +76,11 @@ class Profiler(object):
 
         atexit.register(self.stop)
 
+        # register_on_exit_signal is needed for processes terminated via SIGTERM (e.g.
+        # Ray workers, Kubernetes pods). Python atexit handlers do NOT run on SIGTERM by default,
+        # so without this the last partial profile window is silently lost.
+        atexit.register_on_exit_signal(self.stop)
+
         # Note: For regular fork(), native pthread_atfork handlers restart the sampling thread
         # and PeriodicThread auto-restart handles the Scheduler. No explicit forksafe hook needed.
         # For uWSGI, _start_on_fork is registered via uwsgidecorators.postfork() in check_uwsgi().
