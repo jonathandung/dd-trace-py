@@ -1718,13 +1718,21 @@ def _on_azure_cosmos_request_finish(
     _finish_span(ctx, exc_info)
 
 
+def _get_ray_serve_request_span_type(request_meta: Any) -> Optional[str]:
+    if request_meta is None or getattr(request_meta, "is_http_request", False):
+        return SpanTypes.HTTP
+    if getattr(request_meta, "is_grpc_request", False):
+        return SpanTypes.GRPC
+    return SpanTypes.RAY
+
+
 def _on_ray_assign_request(ctx: core.ExecutionContext) -> None:
     request_meta = ctx.get_item("request_meta")
     distributed_context = ctx.get_item("distributed_context")
     if distributed_context is None:
         distributed_context = tracer.current_trace_context()
 
-    span_type = SpanTypes.HTTP if request_meta is None or request_meta.is_http_request else SpanTypes.GRPC
+    span_type = _get_ray_serve_request_span_type(request_meta)
     span = _start_span(ctx, span_type=span_type, child_of=distributed_context)
 
     span._set_attribute(COMPONENT, config.ray.integration_name)
@@ -1753,7 +1761,7 @@ def _on_ray_deployment_remote(ctx: core.ExecutionContext) -> None:
     app_name = ctx.get_item("app_name")
     resource = f"ServeDeployment:{deployment_name}.remote" if deployment_name is not None else "deployment.remote"
 
-    span = _start_span(ctx, resource=resource)
+    span = _start_span(ctx, resource=resource, span_type=SpanTypes.RAY)
 
     span._set_attribute(COMPONENT, config.ray.integration_name)
     if app_name:
@@ -1769,7 +1777,7 @@ def _on_ray_handle_request_with_rejection_start(ctx: core.ExecutionContext) -> N
     distributed_context = ctx.get_item("distributed_context")
     if distributed_context is None:
         distributed_context = tracer.current_trace_context()
-    span_type = SpanTypes.HTTP if request_meta is None or request_meta.is_http_request else SpanTypes.GRPC
+    span_type = _get_ray_serve_request_span_type(request_meta)
 
     span = _start_span(ctx, span_type=span_type, child_of=distributed_context)
     span._set_attribute(COMPONENT, config.ray.integration_name)
@@ -1816,6 +1824,7 @@ def _on_proxy_request_end(
         request_route = getattr(proxy_request, "route_path", None)
         status_code = getattr(response_status, "code", None)
 
+        span._set_attribute(COMPONENT, config.ray.integration_name)
         if request_type is not None:
             span._set_attribute("ray.serve.request.type", request_type)
 

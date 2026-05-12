@@ -21,27 +21,42 @@ RAY_MULTI_APP_SNAPSHOT_IGNORES = [
 MULTI_APP_SERVE_DIR = Path(__file__).parent / "multi_app"
 
 
-def _wait_for_multi_app_deployments(env):
+def _start_ray_cluster(env):
+    # AIDEV-NOTE: Keep this explicit cluster small; `serve run` auto-starts Ray
+    # with default object-store sizing, which is too large for constrained CI pods.
+    subprocess.run(["ray", "stop", "--force"], env=env, check=False, capture_output=True)
+    return subprocess.run(
+        [
+            "ddtrace-run",
+            "ray",
+            "start",
+            "--head",
+            "--num-cpus=3",
+            "--num-gpus=0",
+            "--object-store-memory=78643200",
+            "--dashboard-host=127.0.0.1",
+            "--dashboard-port=8265",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _wait_for_multi_app_deployments(base_url):
     deadline = time.time() + 120
     last_status = ""
 
     while time.time() < deadline:
-        result = subprocess.run(
-            ["serve", "status"],
-            cwd=MULTI_APP_SERVE_DIR,
-            env=env,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        last_status = result.stdout + result.stderr
-        if (
-            result.returncode == 0
-            and "hello_app" in last_status
-            and "goodbye_app" in last_status
-            and last_status.count("RUNNING") >= 2
-        ):
-            return
+        try:
+            hello_resp = requests.get(f"{base_url}/hello", timeout=2)
+            goodbye_resp = requests.get(f"{base_url}/goodbye", timeout=2)
+            if hello_resp.status_code == 200 and goodbye_resp.status_code == 200:
+                return
+            last_status = "hello=%s goodbye=%s" % (hello_resp.status_code, goodbye_resp.status_code)
+        except requests.RequestException as e:
+            last_status = repr(e)
         time.sleep(0.5)
 
     raise AssertionError("Ray Serve multi-app deployments were not ready.\n%s" % last_status)
@@ -57,7 +72,14 @@ def multi_app_serve_url(snapshot):
         }
     )
 
-    subprocess.run(["ray", "stop", "--force"], env=env, check=False, capture_output=True)
+    ray_start = _start_ray_cluster(env)
+    if ray_start.returncode != 0:
+        raise AssertionError(
+            "Ray cluster failed to start.\n"
+            "=== Captured STDOUT ===\n%s\n=== End of captured STDOUT ===\n"
+            "=== Captured STDERR ===\n%s\n=== End of captured STDERR ===" % (ray_start.stdout, ray_start.stderr)
+        )
+
     server_process = subprocess.Popen(
         ["ddtrace-run", "serve", "run", "serve_config.yaml"],
         cwd=MULTI_APP_SERVE_DIR,
@@ -70,17 +92,18 @@ def multi_app_serve_url(snapshot):
     )
 
     try:
+        base_url = "http://127.0.0.1:8000"
         try:
-            _wait_for_multi_app_deployments(env)
-        except Exception:
+            _wait_for_multi_app_deployments(base_url)
+        except Exception as e:
             stdout, stderr = server_process.communicate(timeout=1) if server_process.poll() is not None else ("", "")
             raise AssertionError(
-                "Ray Serve multi-app server failed.\n"
+                "Ray Serve multi-app server failed.\n%s\n"
                 "=== Captured STDOUT ===\n%s\n=== End of captured STDOUT ===\n"
-                "=== Captured STDERR ===\n%s\n=== End of captured STDERR ===" % (stdout, stderr)
+                "=== Captured STDERR ===\n%s\n=== End of captured STDERR ===" % (e, stdout, stderr)
             )
         snapshot.clear()
-        yield "http://127.0.0.1:8000"
+        yield base_url
         time.sleep(5)
     finally:
         if server_process.poll() is None:

@@ -1103,7 +1103,7 @@ suites:
     pattern: ^ray$
     snapshot: true
   ray_serve:
-    parallelism: 3
+    parallelism: 6
     paths:
       - '@bootstrap'
       - '@core'

@@ -15,8 +15,11 @@ from ddtrace.contrib.internal.ray_serve.utils import _get_ingress_endpoint_metho
 from ddtrace.contrib.internal.ray_serve.utils import _get_proxy_request_route_pattern
 from ddtrace.contrib.internal.ray_serve.utils import extract_grpc_context
 from ddtrace.contrib.internal.trace_utils import unwrap as _u
+from ddtrace.ext import SpanTypes
 from ddtrace.internal import core
+from ddtrace.internal.constants import COMPONENT
 from ddtrace.internal.logger import get_logger
+from ddtrace.internal.settings._config import config
 from ddtrace.internal.utils import get_argument_value
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.trace import Context
@@ -74,7 +77,7 @@ def _set_deployment_method_span_metadata(ctx, deployment_name: str, method_name:
     if span is None:
         return
 
-    span._set_attribute("component", "ray")
+    span._set_attribute(COMPONENT, config.ray.integration_name)
     span._set_attribute("ray.serve.deployment", deployment_name)
     span._set_attribute("ray.serve.call_method", method_name)
 
@@ -163,10 +166,12 @@ async def traced_proxy_request(func, instance, args, kwargs):
         grpc_context = proxy_request.ray_serve_grpc_context
         resource = proxy_request.service_method
         distributed_context = extract_grpc_context(grpc_context)
+        span_type = SpanTypes.GRPC
     else:
         method = proxy_request.method
         route_path: Optional[str] = proxy_request.route_path
         distributed_context = _extract_proxy_request_http_context(proxy_request)
+        span_type = SpanTypes.HTTP
 
         # Use Ray Serve's matched route pattern (e.g. /model2/{model_name}) when
         # available, mirroring what Ray logs/metrics use, to avoid high-cardinality
@@ -184,6 +189,7 @@ async def traced_proxy_request(func, instance, args, kwargs):
         "ray.proxy.request",
         span_name="proxy_request",
         resource=resource,
+        span_type=span_type,
         activate=True,
         call_trace=False,
         distributed_context=tracer.current_trace_context() if distributed_context is None else distributed_context,
@@ -227,6 +233,7 @@ def _trace_deployment_method(method, deployment_name, is_ingress_call: bool = Fa
                 "ray.serve.deployment",
                 span_name="deployment.method_execution",
                 resource=f"ServeDeployment:{deployment_name}.{resource_name}",
+                span_type=SpanTypes.RAY,
             ) as ctx:
                 _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
                 result = await method(*args, **kwargs)
@@ -242,6 +249,7 @@ def _trace_deployment_method(method, deployment_name, is_ingress_call: bool = Fa
                 "ray.serve.deployment",
                 span_name="deployment.method_execution",
                 resource=f"ServeDeployment:{deployment_name}.{resource_name}",
+                span_type=SpanTypes.RAY,
             ) as ctx:
                 _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
                 _set_ingress_endpoint_resource(ctx, args, kwargs)
@@ -257,6 +265,7 @@ def _trace_deployment_method(method, deployment_name, is_ingress_call: bool = Fa
                 "ray.serve.deployment",
                 span_name="deployment.method_execution",
                 resource=f"ServeDeployment:{deployment_name}.{resource_name}",
+                span_type=SpanTypes.RAY,
             ) as ctx:
                 _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
                 _set_ingress_endpoint_resource(ctx, args, kwargs)
@@ -271,6 +280,7 @@ def _trace_deployment_method(method, deployment_name, is_ingress_call: bool = Fa
                 "ray.serve.deployment",
                 span_name="deployment.method_execution",
                 resource=f"ServeDeployment:{deployment_name}.{resource_name}",
+                span_type=SpanTypes.RAY,
             ) as ctx:
                 _set_deployment_method_span_metadata(ctx, deployment_name, resource_name)
                 return method(*args, **kwargs)
